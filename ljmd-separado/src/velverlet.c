@@ -1,6 +1,5 @@
-#include "mdsys.h"
 #include "force.h"
-
+#include "velverlet.h"
 /* velocity verlet */
 // static void velverlet()
 void velverlet(mdsys_t *sys)

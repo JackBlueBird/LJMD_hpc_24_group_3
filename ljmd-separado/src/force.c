@@ -1,6 +1,7 @@
+#include <math.h>
 #include "mdsys.h"
 #include "utilities.h"
-#include <math.h>
+#include "force.h"
 
 /*this is for force*/
 /* compute forces */

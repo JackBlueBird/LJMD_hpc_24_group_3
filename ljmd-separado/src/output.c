@@ -1,5 +1,4 @@
-#include "mdsys.h"
-#include <stdio.h>
+#include "output.h"
 
 /* append data to output. */
 // static void output()

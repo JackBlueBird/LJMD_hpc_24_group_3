@@ -1,0 +1,5 @@
+// the configured options and settings for LJMD
+// Define Tutorial_VERSION
+#define LJMD_VERSION @LJMD_VERSION@
+
+

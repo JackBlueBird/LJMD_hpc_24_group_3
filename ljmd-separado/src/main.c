@@ -1,17 +1,21 @@
 /* Include all the libraries */
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <math.h>
+#include <sys/time.h>
+
+/*Inlcude version number*/
+#include "LJMDConfig.h"
+
+#include "mdsys.h"
 #include "read_input.h"
 #include "utilities.h"
 #include "ekin.h"
 #include "force.h"
 #include "velverlet.h"
 #include "output.h"
-#include "clean_up.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-
-const double kboltz = 0.0019872067;     /* boltzman constant in kcal/mol/K */
-const double mvsq2e = 2390.05736153349; /* m*v^2 in kcal/mol */
 
 int main(int argc, char **argv)
 {
