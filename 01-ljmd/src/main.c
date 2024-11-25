@@ -22,6 +22,7 @@
 #include "utilities.h"
 #include "ekin.h"
 #include "force.h"
+#include "verlet.h"
 #include "output.h"
 
 /* main */
@@ -161,7 +162,9 @@ int main(int argc, char **argv)
             }
         }
         /* propagate system and recompute energies */
-        velverlet(&sys);
+        velverlet1(&sys);
+        force(&sys);
+        velverlet2(&sys);
         ekin(&sys);
     }
     /**************************************************/
