@@ -7,9 +7,9 @@ project(LJMD VERSION 1.0)
 configure_file(LJMDConfig.h.in LJMDConfig.h @ONLY)
 
 # add the header files to the list of source files
-set(HEADER_FILES src/mdsys.h src/read_input.h src/utilities.h src/ekin.h src/force.h src/output.h)
+set(HEADER_FILES src/mdsys.h src/read_input.h src/utilities.h src/ekin.h src/force.h src/verlet.h src/output.h)
 # Add separated files into a library
-add_library(mdlib SHARED src/mdsys.c src/read_input.c src/utilities.c src/ekin.c src/force.c src/output.c ${HEADER_FILES})
+add_library(mdlib SHARED src/mdsys.c src/read_input.c src/utilities.c src/ekin.c src/force.c src/verlet.c src/output.c ${HEADER_FILES})
 target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
 target_link_libraries(mdlib m)
 # Include source file directory
