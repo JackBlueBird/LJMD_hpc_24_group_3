@@ -2,5 +2,12 @@
 #define FORCE_H
 #include "mdsys.h"
 #include "utilities.h"
-void force(mdsys_t *sys);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+extern void force(mdsys_t *sys);
+#ifdef __cplusplus
+}
+#endif
 #endif

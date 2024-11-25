@@ -5,6 +5,13 @@
 #include <string.h>
 #include <ctype.h>
 
-int get_a_line(FILE *fp, char *buf);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+extern int get_a_line(FILE *fp, char *buf);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
