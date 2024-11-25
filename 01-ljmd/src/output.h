@@ -6,6 +6,13 @@
 
 #include "mdsys.h"
 
-void output(mdsys_t *sys, FILE *erg, FILE *traj);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+extern void output(mdsys_t *sys, FILE *erg, FILE *traj);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

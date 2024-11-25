@@ -14,6 +14,10 @@ extern const double mvsq2e;     /* m*v^2 in kcal/mol */
  * about the MD system */
 #ifndef MDSYS_H
 #define MDSYS_H
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 struct _mdsys {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
@@ -23,5 +27,7 @@ struct _mdsys {
     double *fx, *fy, *fz;
 };
 typedef struct _mdsys mdsys_t;
-
+#ifdef __cplusplus
+}
+#endif
 #endif
