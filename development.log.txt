@@ -1,3 +1,4 @@
 1 - GZ: port initial source code provided by Axel Kohlmeyer, create log, update Readme.
 2 - LA: create Cmake file and CmakeConfig to change from Makefile to Cmake.
-3 - GZ: implement MPI version: parallelize forces and main
+3 - GZ: implement single core optimization: modify force and data structures.
+4 - GZ: implement MPI version: parallelize forces and main

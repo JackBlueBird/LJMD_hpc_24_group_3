@@ -19,9 +19,9 @@ extern "C"
 {
 #endif
 struct _mdsys {
-    int natoms,nfi,nsteps;
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
+    int natoms,nfi,nsteps;
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
