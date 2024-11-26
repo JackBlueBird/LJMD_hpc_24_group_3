@@ -1,3 +1,15 @@
+#ifndef PBC_FUNC
+#define PBC_FUNC
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+static inline double pbc(double x, const double boxby2);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #ifndef FORCE_H
 #define FORCE_H
 #include "mdsys.h"
