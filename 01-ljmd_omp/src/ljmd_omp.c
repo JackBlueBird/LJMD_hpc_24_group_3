@@ -16,7 +16,7 @@
 /* generic file- or pathname buffer length */
 #define BLEN 200
 
-/* a few physical constants */
+/* a few pcysical constants */
 const double kboltz = 0.0019872067;     /* boltzman constant in kcal/mol/K */
 const double mvsq2e = 2390.05736153349; /* m*v^2 in kcal/mol */
 
@@ -30,7 +30,7 @@ struct _mdsys {
   double *rx, *ry, *rz;
   double *vx, *vy, *vz;
   double *fx, *fy, *fz;
-  double *hx, *hy, *hz;
+  double *cx, *cy, *cz;
   int nthreads;
 };
 typedef struct _mdsys mdsys_t;
@@ -109,43 +109,55 @@ static void ekin(mdsys_t *sys) {
 
 /* compute forces */
 static void force(mdsys_t *sys) {
-    double c12 = 4.0 * sys->epsilon * pow(sys->sigma, 12.0);
-    double c6 = 4.0 * sys->epsilon * pow(sys->sigma, 6.0);
+
+    double sigma, sigma6;
+    sigma=sys->sigma;
+    sigma6=sigma*sigma*sigma*sigma*sigma*sigma;
+
+    double c12 = 4.0 * sys->epsilon * sigma6*sigma6;//pow(sys->sigma, 12.0);
+    double c6 = 4.0 * sys->epsilon * sigma6;//pow(sys->sigma, 6.0);
     double rcsq = sys->rcut * sys->rcut;
     double epot_local = 0.0;
 
-    // Arrys of support hx -> helper x
-    azzero(sys->hx, sys->nthreads * sys->natoms);
-    azzero(sys->hy, sys->nthreads * sys->natoms);
-    azzero(sys->hz, sys->nthreads * sys->natoms);
+    //MPI_Bcast(sys->rx, sys->natoms, MPI_DOUBLE, 0, sys->mpicomm);
+	  //MPI_Bcast(sys->ry, sys->natoms, MPI_DOUBLE, 0, sys->mpicomm);
+	  //MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, sys->mpicomm);
+
+    // Arrys of support cx -> helper x
+    azzero(sys->cx, sys->nthreads * sys->natoms);
+    azzero(sys->cy, sys->nthreads * sys->natoms);
+    azzero(sys->cz, sys->nthreads * sys->natoms);
 
     #ifdef _OPENMP
     #pragma omp parallel num_threads(sys->nthreads)
     #endif
     {
-        int tid;
+        int tid=0;
         #ifdef _OPENMP
         tid = omp_get_thread_num();
-        #else
-        tid = 0;
+        //#else
+        //tid = 0;
         #endif
-
+        double nsize = 1;// this will become sys->nsize
         double rx, ry, rz, rsq, ffac;
-        double *hx = sys->hx + tid * sys->natoms;
-        double *hy = sys->hy + tid * sys->natoms;
-        double *hz = sys->hz + tid * sys->natoms;
+        double *cx = sys->cx + tid * sys->natoms;
+        double *cy = sys->cy + tid * sys->natoms;
+        double *cz = sys->cz + tid * sys->natoms;
 
         // divide the work between threads
-        int grids = sys->nthreads;
+        int grids = sys->nthreads*nsize;// nsize is the number of ranks
+        double mpirank =0;//sys->mpirank;
         for (int i = 0; i < sys->natoms - 1; i += grids) {
-            int ii = i + tid; // new index 
+            int ii = i + tid + sys->nthreads*mpirank; // mpirank will become sys->mpirank
             if (ii >= sys->natoms - 1) break;
-
+                double rx1 = sys->rx[ii];
+                double ry1 = sys->ry[ii];
+                double rz1 = sys->rz[ii];
             for (int j = ii + 1; j < sys->natoms; ++j) {
                 // distances bettween particles
-                rx = pbc(sys->rx[ii] - sys->rx[j], 0.5 * sys->box);
-                ry = pbc(sys->ry[ii] - sys->ry[j], 0.5 * sys->box);
-                rz = pbc(sys->rz[ii] - sys->rz[j], 0.5 * sys->box);
+                rx = pbc(rx1 - sys->rx[j], 0.5 * sys->box);
+                ry = pbc(ry1 - sys->ry[j], 0.5 * sys->box);
+                rz = pbc(rz1 - sys->rz[j], 0.5 * sys->box);
                 rsq = rx * rx + ry * ry + rz * rz;
 
                 // If is inside of the cutoff then compute forces and energies
@@ -159,13 +171,13 @@ static void force(mdsys_t *sys) {
                     #endif
                     epot_local += r6 * (c12 * r6 - c6);
 
-                    hx[ii] += rx * ffac;
-                    hy[ii] += ry * ffac;
-                    hz[ii] += rz * ffac;
+                    cx[ii] += rx * ffac;
+                    cy[ii] += ry * ffac;
+                    cz[ii] += rz * ffac;
 
-                    hx[j] -= rx * ffac;
-                    hy[j] -= ry * ffac;
-                    hz[j] -= rz * ffac;
+                    cx[j] -= rx * ffac;
+                    cy[j] -= ry * ffac;
+                    cz[j] -= rz * ffac;
                 }
             }
         }
@@ -182,21 +194,26 @@ static void force(mdsys_t *sys) {
         for (int t = 1; t < sys->nthreads; ++t) {
             int offset = t * sys->natoms;
             for (int i = start; i < end; ++i) {
-                sys->hx[i] += sys->hx[offset + i];
-                sys->hy[i] += sys->hy[offset + i];
-                sys->hz[i] += sys->hz[offset + i];
+                sys->cx[i] += sys->cx[offset + i];
+                sys->cy[i] += sys->cy[offset + i];
+                sys->cz[i] += sys->cz[offset + i];
             }
         }
     }
-
+    /// this part will become a MPI_Reduce ---------------
     // Update global forces and epot
     for (int i = 0; i < sys->natoms; ++i) {
-        sys->fx[i] = sys->hx[i];
-        sys->fy[i] = sys->hy[i];
-        sys->fz[i] = sys->hz[i];
+        sys->fx[i] = sys->cx[i];
+        sys->fy[i] = sys->cy[i];
+        sys->fz[i] = sys->cz[i];
     }
 
     sys->epot = epot_local;
+    /// this part will become a MPI_Reduce ------- as follow 
+    //MPI_Reduce(sys->cx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, sys->mpicomm);
+	  //MPI_Reduce(sys->cy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, sys->mpicomm);
+	  //MPI_Reduce(sys->cz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, sys->mpicomm);
+	  //MPI_Reduce(&epot, &sys->epot, 1, MPI_DOUBLE, MPI_SUM, 0, sys->mpicomm);
 }
 
 
@@ -309,9 +326,9 @@ int main(int argc, char **argv) {
   sys.fy = (double *)malloc(sys.natoms * sizeof(double));
   sys.fz = (double *)malloc(sys.natoms * sizeof(double));
   // allocate support array for forces
-	sys.hx = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
-	sys.hy = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
-	sys.hz = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cx = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cy = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cz = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
 
 
   /* read restart */
@@ -378,9 +395,9 @@ int main(int argc, char **argv) {
   free(sys.fx);
   free(sys.fy);
   free(sys.fz);
-  free(sys.hx);
-  free(sys.hy);
-  free(sys.hz);
+  free(sys.cx);
+  free(sys.cy);
+  free(sys.cz);
 
   return 0;
 }
