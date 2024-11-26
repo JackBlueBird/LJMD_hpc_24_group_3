@@ -21,11 +21,14 @@ extern "C"
 struct _mdsys {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
-    int natoms,nfi,nsteps;
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz;
+    double *cx, *cy, *cz;
+    int natoms, nfi, nsteps;
+    int nthreads;
 };
+typedef struct _mdsys mdsys_t;
 typedef struct _mdsys mdsys_t;
 #ifdef __cplusplus
 }

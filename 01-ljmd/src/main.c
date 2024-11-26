@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
+#include <omp.h>
 
 /* Include version number */
 #include "LJMDConfig.h"
@@ -24,6 +25,7 @@
 #include "verlet.h"
 #include "output.h"
 
+
 /* main */
 int main(int argc, char **argv)
 {
@@ -33,8 +35,16 @@ int main(int argc, char **argv)
     mdsys_t sys;
     double t_start;
 
-    printf("LJMD version %3.1f\n", LJMD_VERSION);
+    /*Initialice ntheads*/
+    #if defined(_OPENMP)
+    #pragma omp parallel
+        sys.nthreads = omp_get_num_threads();
+    #else
+        sys.nthreads = 1;
+    #endif
 
+    printf("LJMD version %3.1f\n", LJMD_VERSION);
+    printf("Number of threads equal to %d \n",sys.nthreads);
     t_start = wallclock();
 
     /* read input file */
@@ -70,6 +80,11 @@ int main(int argc, char **argv)
     sys.fx=(double *)malloc(sys.natoms*sizeof(double));
     sys.fy=(double *)malloc(sys.natoms*sizeof(double));
     sys.fz=(double *)malloc(sys.natoms*sizeof(double));
+
+    // OMP instruction - allocate support array for forces
+	sys.cx = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cy = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cz = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
 
     /* read restart */
     fp=fopen(restfile,"r");
@@ -136,6 +151,9 @@ int main(int argc, char **argv)
     free(sys.fy);
     free(sys.fz);
 
+    // OMP instruction - de allocate auxiliary storages
+    free(sys.cx);
+    free(sys.cy);
+    free(sys.cz);
     return 0;
 }
-
