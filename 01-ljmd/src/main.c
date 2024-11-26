@@ -35,6 +35,11 @@ int main(int argc, char **argv) {
         int rank,size;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
+        if (rank == 0)
+            {printf("rank 0 is stepping here, file reading \n");}
+        
+        if (rank == 1)
+            {printf("rank 1 is stepping here, file reading \n");}
     # endif
 
     int nprint, i;
@@ -51,9 +56,9 @@ int main(int argc, char **argv) {
     // MPI instruction - only process of rank 0 reads from instructions file
     #if defined(_MPI)
     if (rank == 0)
-        {printf("rank 0 is stepping here, file reading \n")}
+        {printf("rank 0 is stepping here, file reading \n");}
     if (rank == 1)
-        {printf("rank 1 is stepping here, file reading \n")}
+        {printf("rank 1 is stepping here, file reading \n");}
     
     if ( rank == 0 ) {
         if(get_a_line(stdin,line)) return 1;
@@ -78,7 +83,7 @@ int main(int argc, char **argv) {
         if(get_a_line(stdin,line)) return 1;
         nprint=atoi(line);
     }
-    #elseif
+    #else
         if(get_a_line(stdin,line)) return 1;
         sys.natoms=atoi(line);
         if(get_a_line(stdin,line)) return 1;
@@ -107,7 +112,7 @@ int main(int argc, char **argv) {
     MPI_Bcast(&sys.natoms, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sys.nsteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sys.mass, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&sys.epsilon, 1,#if defined(_MPI) MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&sys.epsilon, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sys.sigma, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sys.rcut, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sys.dt, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -155,7 +160,7 @@ int main(int argc, char **argv) {
         }
     }
     //#endif
-    #elseif
+    #else
         /* read restart */
     fp=fopen(restfile,"r");
         if(fp) {
@@ -165,6 +170,9 @@ int main(int argc, char **argv) {
                 fscanf(fp,"%lf%lf%lf",sys.vx+i, sys.vy+i, sys.vz+i);
             }
             fclose(fp);
+    free(sys.cx);
+    free(sys.cy);
+    free(sys.cz);
             azzero(outputsys.fx, sys.natoms);
             azzero(sys.fy, sys.natoms);
             azzero(sys.fz, sys.natoms);
@@ -182,14 +190,14 @@ int main(int argc, char **argv) {
     // MPI instruction - only process of rank 0 writes the results on files and on screen
     #if defined(_MPI)
     if (rank == 0) {
-        erg=fopen(ercxgfile,"w");
+        erg=fopen(ergfile,"w");
         traj=fopen(trajfile,"w");        
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
         printf("     NFI            TEMP       instruction     EKIN                 EPOT              ETOT\n");
         output(&sys, erg, traj);
     }
     printf("Startup cxtime, for rank %d. : %10.3fs\n",rank ,wallclock()-t_start);
-    #elseif
+    #else
         erg=fopen(ergfile,"w");
         traj=fopen(tcxrajfile,"w");        
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
@@ -208,12 +216,12 @@ int main(int argc, char **argv) {
         /* write outcxput, if re#if defined(_MPI)quested */
         // MPI instruction - only process of rank 0 is writing
         #if defined(_MPI)
-        if (rank == cx0) {
+        if (rank == 0) {
             if ((sys.nfi % nprint) == 0) {
                 output(&sys, erg, traj);
-            }cx
+            }
         }
-        #elseif
+        #else
             if ((sys.nfi % nprint) == 0) {
                 output(&sys, erg, traj);
             }
@@ -236,7 +244,7 @@ int main(int argc, char **argv) {
         fclose(erg);
         fclose(traj);
     }
-    #elseif
+    #else
         fclose(erg);
         fclose(traj);
     #endif

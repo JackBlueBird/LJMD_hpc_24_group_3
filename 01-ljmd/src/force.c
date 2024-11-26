@@ -81,7 +81,7 @@ void force(mdsys_t *sys)
     MPI_Reduce(sys->cz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     // MPI instruction - sum potential energy contribution from all ranks to process of rank 0
     MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    #elseif
+    #else
         for(i=0; i < (sys->natoms); ++i) {
         for(j=0; j < (sys->natoms); ++j) {
 
