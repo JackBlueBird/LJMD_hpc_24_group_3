@@ -14,7 +14,8 @@ configure_file(LJMDConfig.h.in LJMDConfig.h @ONLY)
 set(HEADER_FILES src/mdsys.h src/read_input.h src/utilities.h src/ekin.h src/force.h src/verlet.h src/output.h)
 # Add separated files into a library
 add_library(mdlib SHARED src/mdsys.c src/read_input.c src/utilities.c src/ekin.c src/force.c src/verlet.c src/output.c ${HEADER_FILES})
-target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer -D_MPI)
+target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer )
+#target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer -D_MPI)
 target_link_libraries(mdlib m ${MPI_LIBRARIES})
 # Include source file directory
 target_include_directories(mdlib PUBLIC ./src)

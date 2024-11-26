@@ -162,25 +162,22 @@ int main(int argc, char **argv) {
     //#endif
     #else
         /* read restart */
-    fp=fopen(restfile,"r");
+        fp=fopen(restfile,"r");
         if(fp) {
             for (i=0; i<sys.natoms; ++i) {
                 fscanf(fp,"%lf%lf%lf",sys.rx+i, sys.ry+i, sys.rz+i);
+            }
             for (i=0; i<sys.natoms; ++i) {
                 fscanf(fp,"%lf%lf%lf",sys.vx+i, sys.vy+i, sys.vz+i);
             }
             fclose(fp);
-    free(sys.cx);
-    free(sys.cy);
-    free(sys.cz);
-            azzero(outputsys.fx, sys.natoms);
+            azzero(sys.fx, sys.natoms);
             azzero(sys.fy, sys.natoms);
             azzero(sys.fz, sys.natoms);
-        } else {
-            perror("cannot read restart file");
-            return 3;
-        }
-    }
+            } else {
+                perror("cannot read restart file");
+                return 3;
+            }
     #endif    
     /* initialize forces and energies.*/
     sys.nfi=0;
@@ -189,17 +186,18 @@ int main(int argc, char **argv) {
 
     // MPI instruction - only process of rank 0 writes the results on files and on screen
     #if defined(_MPI)
-    if (rank == 0) {
-        erg=fopen(ergfile,"w");
-        traj=fopen(trajfile,"w");        
-        printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
-        printf("     NFI            TEMP       instruction     EKIN                 EPOT              ETOT\n");
-        output(&sys, erg, traj);
-    }
-    printf("Startup cxtime, for rank %d. : %10.3fs\n",rank ,wallclock()-t_start);
+        printf("Startup time, for rank %d. : %10.3fs\n",rank ,wallclock()-t_start);
+        if (rank == 0) {
+            erg=fopen(ergfile,"w");
+            traj=fopen(trajfile,"w");        
+            printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
+            printf("     NFI            TEMP       instruction     EKIN                 EPOT              ETOT\n");
+            output(&sys, erg, traj);
+        }        
     #else
         erg=fopen(ergfile,"w");
-        traj=fopen(tcxrajfile,"w");        
+        traj=fopen(trajfile,"w");
+        printf("Startup time, : %10.3fs\n",wallclock()-t_start);        
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
         printf("     NFI            TEMP            EKIN                 EPOT              ETOT\n");
         output(&sys, erg, traj);
@@ -213,14 +211,14 @@ int main(int argc, char **argv) {
     /* main MD loop cx*/
     for(sys.nfi=1; sys.nfi <= sys.nsteps; ++sys.nfi) {
 
-        /* write outcxput, if re#if defined(_MPI)quested */
+        /* write output, if requested */
         // MPI instruction - only process of rank 0 is writing
         #if defined(_MPI)
-        if (rank == 0) {
-            if ((sys.nfi % nprint) == 0) {
-                output(&sys, erg, traj);
+            if (rank == 0) {
+                if ((sys.nfi % nprint) == 0) {
+                    output(&sys, erg, traj);
+                }
             }
-        }
         #else
             if ((sys.nfi % nprint) == 0) {
                 output(&sys, erg, traj);
@@ -245,6 +243,7 @@ int main(int argc, char **argv) {
         fclose(traj);
     }
     #else
+        printf("Simulation Done. Run time: %10.3fs\n",wallclock()-t_start);
         fclose(erg);
         fclose(traj);
     #endif
