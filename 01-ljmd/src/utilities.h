@@ -1,15 +1,25 @@
 #ifndef WALLCLOCK_FUNC
 #define WALLCLOCK_FUNC
 #include <sys/time.h>
-double wallclock();
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+extern double wallclock();
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 #ifndef AZZERO_FUNC
 #define AZZERO_FUNC
-void azzero(double *d, const int n);
+#ifdef __cplusplus
+extern "C"
+{
 #endif
-
-#ifndef PBC_FUNC
-#define PBC_FUNC
-double pbc(double x, const double boxby2);
+extern void azzero(double *d, const int n);
+#ifdef __cplusplus
+}
+#endif
 #endif
