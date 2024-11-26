@@ -28,8 +28,7 @@
 #include "output.h"
 
 /* main */
-int main(int argc, char **argv)
-{   
+int main(int argc, char **argv) {   
     // MPI instruction - set up mpi
     # if defined(_MPI)
         MPI_Init(&argc, &argv);
@@ -44,13 +43,18 @@ int main(int argc, char **argv)
     mdsys_t sys;
     double t_start;
 
-    printf("LJMD version %3.1f\n", LJMD_VERSION);
+    // printf("LJMD version %3.1f\n", LJMD_VERSION);
 
     t_start = wallclock();
 
     /* read input file */
     // MPI instruction - only process of rank 0 reads from instructions file
     #if defined(_MPI)
+    if (rank == 0)
+        {printf("rank 0 is stepping here, file reading \n")}
+    if (rank == 1)
+        {printf("rank 1 is stepping here, file reading \n")}
+    
     if ( rank == 0 ) {
         if(get_a_line(stdin,line)) return 1;
         sys.natoms=atoi(line);
@@ -124,9 +128,9 @@ int main(int argc, char **argv)
     
     // MPI instruction - allocate memory for auxiliary storage
     #if defined(_MPI)
-    sys.cx=(double *)malloc(sys.natoms*sizeof(double));
-    sys.cy=(double *)malloc(sys.natoms*sizeof(double));
-    sys.cz=(double *)malloc(sys.natoms*sizeof(double));
+        sys.cx=(double *)malloc(sys.natoms*sizeof(double));
+        sys.cy=(double *)malloc(sys.natoms*sizeof(double));
+        sys.cz=(double *)malloc(sys.natoms*sizeof(double));
     #endif
 
     // MPI instruction - only process of rank 0 reads intial positions for particles
@@ -150,9 +154,10 @@ int main(int argc, char **argv)
             return 3;
         }
     }
+    //#endif
     #elseif
         /* read restart */
-        fp=fopen(restfile,"r");
+    fp=fopen(restfile,"r");
         if(fp) {
             for (i=0; i<sys.natoms; ++i) {
                 fscanf(fp,"%lf%lf%lf",sys.rx+i, sys.ry+i, sys.rz+i);
@@ -167,6 +172,7 @@ int main(int argc, char **argv)
             perror("cannot read restart file");
             return 3;
         }
+    }
     #endif    
     /* initialize forces and energies.*/
     sys.nfi=0;
@@ -176,16 +182,16 @@ int main(int argc, char **argv)
     // MPI instruction - only process of rank 0 writes the results on files and on screen
     #if defined(_MPI)
     if (rank == 0) {
-        erg=fopen(ergfile,"w");
+        erg=fopen(ercxgfile,"w");
         traj=fopen(trajfile,"w");        
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
         printf("     NFI            TEMP       instruction     EKIN                 EPOT              ETOT\n");
         output(&sys, erg, traj);
     }
-    printf("Startup time, for rank %d. : %10.3fs\n",rank ,wallclock()-t_start);
+    printf("Startup cxtime, for rank %d. : %10.3fs\n",rank ,wallclock()-t_start);
     #elseif
         erg=fopen(ergfile,"w");
-        traj=fopen(trajfile,"w");        
+        traj=fopen(tcxrajfile,"w");        
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
         printf("     NFI            TEMP            EKIN                 EPOT              ETOT\n");
         output(&sys, erg, traj);
@@ -196,16 +202,16 @@ int main(int argc, char **argv)
     t_start = wallclock();
 
     /**************************************************/
-    /* main MD loop */
+    /* main MD loop cx*/
     for(sys.nfi=1; sys.nfi <= sys.nsteps; ++sys.nfi) {
 
-        /* write output, if re#if defined(_MPI)quested */
+        /* write outcxput, if re#if defined(_MPI)quested */
         // MPI instruction - only process of rank 0 is writing
         #if defined(_MPI)
-        if (rank == 0) {
+        if (rank == cx0) {
             if ((sys.nfi % nprint) == 0) {
                 output(&sys, erg, traj);
-            }
+            }cx
         }
         #elseif
             if ((sys.nfi % nprint) == 0) {
@@ -244,12 +250,12 @@ int main(int argc, char **argv)
     free(sys.fx);
     free(sys.fy);
     free(sys.fz);
-    free(sys.cx);
-    free(sys.cy);
-    free(sys.cz);
     
     #if defined(_MPI) 
         MPI_Finalize();
+        free(sys.cx);
+        free(sys.cy);
+        free(sys.cz);
     #endif
 
     return 0;
