@@ -63,9 +63,9 @@ void force(mdsys_t *sys)
                 //if (ii==j) continue;
 
                 /* get distance between particle i and j */
-                rx=pbc(sys->rx[i] - sys->rx[j], 0.5*sys->box);
-                ry=pbc(sys->ry[i] - sys->ry[j], 0.5*sys->box);
-                rz=pbc(sys->rz[i] - sys->rz[j], 0.5*sys->box);
+                rx=pbc(sys->rx[ii] - sys->rx[j], 0.5*sys->box);
+                ry=pbc(sys->ry[ii] - sys->ry[j], 0.5*sys->box);
+                rz=pbc(sys->rz[ii] - sys->rz[j], 0.5*sys->box);
                 // OPT instruction - work with r2 instead of r
                 rsq = rx*rx + ry*ry + rz*rz;
 
