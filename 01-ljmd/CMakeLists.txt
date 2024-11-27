@@ -3,9 +3,17 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name and version
 project(LJMD VERSION 1.0)
 
-# for MPI
-find_package(MPI REQUIRED)
-include_directories(${MPI_INCLUDE_PATH})
+## ---- MPI ----
+option(SEARCH_MPI "Search MPI libraries" ON)
+if(SEARCH_MPI)
+find_package(MPI)
+endif()
+if(MPI_C_FOUND)
+  include_directories(${MPI_INCLUDE_PATH})
+  message(STATUS "Run: ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} EXECUTABLE ${MPIEXEC_POSTFLAGS} < input_file")
+endif()
+##
+
 # set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
@@ -14,30 +22,45 @@ endif()
 # Use configure_file to set LJMD version
 configure_file(LJMDConfig.h.in LJMDConfig.h @ONLY)
 
+#-------------------------------------------------------------------------------
+# MD LIB
+#-------------------------------------------------------------------------------
 # add the header files to the list of source files
 set(HEADER_FILES src/mdsys.h src/read_input.h src/utilities.h src/ekin.h src/force.h src/verlet.h src/output.h)
 # Add separated files into a library
 add_library(mdlib SHARED src/mdsys.c src/read_input.c src/utilities.c src/ekin.c src/force.c src/verlet.c src/output.c ${HEADER_FILES})
-#target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer )
-target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer -D_MPI)
-target_link_libraries(mdlib m ${MPI_LIBRARIES})
+target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
+target_link_libraries(mdlib m)
+
+## ---- MPI ----
+if(MPI_C_FOUND)
+  target_compile_options(mdlib PUBLIC -D_MPI)
+  target_link_libraries(mdlib ${MPI_LIBRARIES})
+endif()
+
 # Include source file directory
 target_include_directories(mdlib PUBLIC ./src)
 
+#-------------------------------------------------------------------------------
+# LJMD EXEC
+#-------------------------------------------------------------------------------
 # add the executable
 add_executable(ljmd-serial.x src/main.c)
-
-# for MPI
-#target_link_libraries(ljmd-serial.x ${MPI_LIBRARIES})
-
 target_compile_options(ljmd-serial.x PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
-# link math.h and mdlib
-target_link_libraries(ljmd-serial.x m mdlib ${MPI_LIBRARIES})
+target_link_libraries(ljmd-serial.x m mdlib)
+
+## ---- MPI ----
+if(MPI_C_FOUND)
+  target_link_libraries(ljmd-serial.x ${MPI_LIBRARIES})
+endif()
+
 # Use target_include_directories to include ${PROJECT_BINARY_DIR}
 target_include_directories(ljmd-serial.x PUBLIC "${PROJECT_BINARY_DIR}" ./src)
 
 
-# Testing
+#-------------------------------------------------------------------------------
+# GTest Suite
+#-------------------------------------------------------------------------------
 option(ENABLE_TESTING "Enable building unit tests" ON)
 if(ENABLE_TESTING)
   enable_testing()
@@ -119,5 +142,9 @@ if(ENABLE_TESTING)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/gtest-bin"
   )
 
+  ## ---- MPI ----
+  if(MPI_C_FOUND)
+    target_link_libraries(test_force PRIVATE GTest::GTestMain GTest::GTest ${MPI_LIBRARIES})
+  endif()
 
 endif()
