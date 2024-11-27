@@ -54,8 +54,16 @@ int main(int argc, char **argv)
         sys.nthreads = 1;
     #endif
 
+    int nthreads = 1;
+    #ifdef _OPENMP
+    #pragma omp parallel
+    {
+        nthreads = omp_get_num_threads();
+    }
+    #endif
+
     printf("LJMD version %3.1f\n", LJMD_VERSION);
-    printf("Number of threads equal to %d \n",sys.nthreads);
+    printf("Number of threads equal to %d \n",nthreads);
     t_start = wallclock();
 
     /* read input file */
@@ -72,7 +80,7 @@ int main(int argc, char **argv)
         sys.rcut=atof(line);
         if(get_a_line(stdin,line)) return 1;
         sys.box=atof(line);
-        if(get_a_line(stdin,restfile)) return 1;MPI_Finalize();
+        if(get_a_line(stdin,restfile)) return 1;
         if(get_a_line(stdin,trajfile)) return 1;
         if(get_a_line(stdin,ergfile)) return 1;
         if(get_a_line(stdin,line)) return 1;
@@ -106,9 +114,9 @@ int main(int argc, char **argv)
     sys.fz=(double *)malloc(sys.natoms*sizeof(double));
 
     // OMP instruction - allocate support array for forces
-	sys.cx = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
-	sys.cy = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
-	sys.cz = (double*)malloc(sys.nthreads * sys.natoms * sizeof(double));
+	sys.cx = (double*)malloc(nthreads * sys.natoms * sizeof(double));
+	sys.cy = (double*)malloc(nthreads * sys.natoms * sizeof(double));
+	sys.cz = (double*)malloc(nthreads * sys.natoms * sizeof(double));
 
     /* read restart */
     if (rank == 0) {
@@ -158,8 +166,6 @@ int main(int argc, char **argv)
                 output(&sys, erg, traj);
             }
         }
-
-        /* propagate system and recompute energies */
         velverlet1(&sys);
         force(&sys);
         velverlet2(&sys);
@@ -173,25 +179,24 @@ int main(int argc, char **argv)
         fclose(erg);
         fclose(traj);
     }
-    fclose(erg);
-    fclose(traj);
 
     free(sys.rx);
     free(sys.ry);
     free(sys.rz);
+    
     free(sys.vx);
     free(sys.vy);
     free(sys.vz);
+
     free(sys.fx);
     free(sys.fy);
     free(sys.fz);
 
     // OMP instruction - de allocate auxiliary storages
-
-    MPI_Finalize();
-
     free(sys.cx);
     free(sys.cy);
     free(sys.cz);
+
+    MPI_Finalize();
     return 0;
 }

@@ -77,7 +77,10 @@ void force(mdsys_t *sys) {
     // OMP set up
     int nthreads = 1;
     #ifdef _OPENMP
+        #pragma omp parallel
+        {
         nthreads = omp_get_num_threads();
+        }
     #endif
 
     // MPI set up
@@ -86,6 +89,10 @@ void force(mdsys_t *sys) {
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
     //#endif
+
+    if (rank == 0) {
+        printf("rank 0 number of threads is %d \n", nthreads);
+    }
 
     double sigma, sigma6;
     sigma=sys->sigma;
@@ -146,7 +153,7 @@ void force(mdsys_t *sys) {
 
             // OPT - Newton thir's law
             for (int i = 0; i < sys->natoms - 1; i += grids) {
-                int ii = i + tid + sys->nthreads*rank;
+                int ii = i + tid + nthreads*rank;
                 if (ii >= sys->natoms - 1) {
                     break;
                 }
@@ -192,12 +199,12 @@ void force(mdsys_t *sys) {
             #pragma omp barrier
             #endif
 
-            int chunk_size = (sys->natoms + sys->nthreads - 1) / sys->nthreads;
+            int chunk_size = (sys->natoms + nthreads - 1) / nthreads;
             int start = tid * chunk_size;
             int end = (start + chunk_size > sys->natoms) ? sys->natoms : start + chunk_size;
 
             // OMP - combine the local  forces into global forces 
-            for (int t = 1; t < sys->nthreads; ++t) {
+            for (int t = 1; t < nthreads; ++t) {
                 int offset = t * sys->natoms;
                 for (int i = start; i < end; ++i) {
                     sys->cx[i] += sys->cx[offset + i];
@@ -206,18 +213,17 @@ void force(mdsys_t *sys) {
                 }
             }
             // OMP + MPI - potential energy is stored in a distributed variable for each process
-            epot = epot_local;
+            
         }
+        sys->epot = epot_local;
         // end OPENMPI
 
-
-        
         // MPI instruction - sum forces contribution from all process to process of rank 0
         MPI_Reduce(sys->cx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(sys->cy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(sys->cz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         // MPI instruction - sum potential energy contribution from all ranks to process of rank 0
-        MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        //MPI_Reduce(&epot, &(sys->epot), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     //# else
     //# endif

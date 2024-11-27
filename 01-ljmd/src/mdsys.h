@@ -32,7 +32,6 @@ struct _mdsys {
     // int size;
 };
 typedef struct _mdsys mdsys_t;
-typedef struct _mdsys mdsys_t;
 #ifdef __cplusplus
 }
 #endif
