@@ -1,4 +1,6 @@
 /* generic file- or pathname buffer length */
+
+
 #ifndef BLEN
 #define BLEN 200
 #endif
@@ -18,6 +20,19 @@ extern const double mvsq2e;     /* m*v^2 in kcal/mol */
 extern "C"
 {
 #endif
+
+struct _mdsys {
+    //  WATCH OUT FOR THE COMMUNICATOR
+    double dt, mass, epsilon, sigma, box, rcut;
+    double ekin, epot, temp;
+    double *rx, *ry, *rz;
+    double *vx, *vy, *vz;
+    double *fx, *fy, *fz;
+    double *cx, *cy, *cz;
+    int natoms, nfi, nsteps;
+    int nthreads, nsize, mpirank;
+};
+/*
 struct _mdsys {
     double dt, mass, epsilon, sigma, box, rcut;
     double ekin, epot, temp;
@@ -29,6 +44,7 @@ struct _mdsys {
         double *cx, *cy, *cz;
     #endif
 };
+*/
 typedef struct _mdsys mdsys_t;
 #ifdef __cplusplus
 }

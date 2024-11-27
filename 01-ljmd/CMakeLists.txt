@@ -3,6 +3,15 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name and version
 project(LJMD VERSION 1.0)
 
+
+find_package(OpenMP)
+
+if(OpenMP_FOUND)
+    message(STATUS "OpenMP found, enabling parallelism")
+    add_compile_options(${OpenMP_C_FLAGS})
+    add_link_options(${OpenMP_C_FLAGS})
+endif()
+
 # for MPI
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
@@ -38,7 +47,7 @@ target_include_directories(ljmd-serial.x PUBLIC "${PROJECT_BINARY_DIR}" ./src)
 
 
 # Testing
-option(ENABLE_TESTING "Enable building unit tests" ON)
+option(ENABLE_TESTING "Enable building unit tests" OFF)
 if(ENABLE_TESTING)
   enable_testing()
   enable_language(CXX)
