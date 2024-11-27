@@ -3,14 +3,17 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name and version
 project(LJMD VERSION 1.0)
 
-
+## ---- OMP ----
+option(BUILD_OMP "Search OMP libraries" ON)
+if(BUILD_OMP)
 find_package(OpenMP)
-
-if(OpenMP_FOUND)
-    message(STATUS "OpenMP found, enabling parallelism")
-    add_compile_options(${OpenMP_C_FLAGS})
-    add_link_options(${OpenMP_C_FLAGS})
 endif()
+if(OpenMP_FOUND)
+  message(STATUS "OpenMP found, enabling parallelism")
+  add_compile_options(${OpenMP_C_FLAGS})
+  add_link_options(${OpenMP_C_FLAGS})
+endif()
+##
 
 # for MPI
 find_package(MPI REQUIRED)
