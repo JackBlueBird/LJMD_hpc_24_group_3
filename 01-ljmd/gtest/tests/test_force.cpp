@@ -98,6 +98,11 @@ class ForceTest: public ::testing::Test {
       delete[] sys->rz;
       delete[] sys->fz;
 
+#if defined(_MPI)
+      delete[] sys->cx;
+      delete[] sys->cy;
+      delete[] sys->cx;
+#endif
       delete sys;
 
 #if defined(_MPI)
