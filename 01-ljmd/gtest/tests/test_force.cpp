@@ -139,7 +139,8 @@ TEST_F(ForceTest, interaction)
   ASSERT_NEAR(sys->fx[2],0.0,abs_err);
   ASSERT_NEAR(sys->fy[2],0.0,abs_err);
   ASSERT_NEAR(sys->fz[2],-27726925.7743613,abs_err); // negative by Newton 3
-                                                     // Unit test - force - outside cutoff (p0,p3)
+
+  // Unit test - force - outside cutoff (p0,p3)
   ASSERT_NEAR(sys->fx[3],0.0,abs_err);
   ASSERT_NEAR(sys->fy[3],0.0,abs_err);
   ASSERT_NEAR(sys->fz[3],0.0,abs_err);
