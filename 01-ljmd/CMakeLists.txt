@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 project(LJMD VERSION 1.0)
 
 ## ---- MPI ----
-option(SEARCH_MPI "Search MPI libraries" ON)
-if(SEARCH_MPI)
+option(BUILD_MPI "Search MPI libraries" ON)
+if(BUILD_MPI)
 find_package(MPI)
 endif()
 if(MPI_C_FOUND)
