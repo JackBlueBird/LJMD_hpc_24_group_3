@@ -143,12 +143,10 @@ int main(int argc, char **argv) {
     sys.fy=(double *)malloc(sys.natoms*sizeof(double));
     sys.fz=(double *)malloc(sys.natoms*sizeof(double));
     
-    // MPI instruction - allocate memory for auxiliary storage
-    //#if defined(_MPI)
-        sys.cx=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
-        sys.cy=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
-        sys.cz=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
-    //#endif
+    sys.cx=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
+    sys.cy=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
+    sys.cz=(double *)malloc(sys.nthreads*sys.natoms*sizeof(double));
+
 
     // MPI instruction - only process of rank 0 reads intial positions for particles
     #if defined(_MPI)
