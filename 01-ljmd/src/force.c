@@ -129,13 +129,14 @@ void force(mdsys_t *sys) {
         #ifdef _OPENMP
         #pragma omp parallel num_threads(sys->nthreads)
         #endif
-        {
+        {   
+            // OMP - set number of threads
             int tid=0;
             #ifdef _OPENMP
             tid = omp_get_thread_num();
             #endif
 
-            // OMP - pointers shift
+            // OMP - define pointers and shift them
             double *cx = sys->cx + tid * sys->natoms;
             double *cy = sys->cy + tid * sys->natoms;
             double *cz = sys->cz + tid * sys->natoms;
