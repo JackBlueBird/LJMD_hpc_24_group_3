@@ -217,21 +217,20 @@ static void force(mdsys_t *sys) {
 
     // sincronization and combine the local  forces into global forces 
     #ifdef _OPENMP
-	  #pragma omp barrier	 // sync everything
+    #pragma omp barrier
     #endif
-		int i = 1 + (sys->natoms / sys->nthreads);
-		int fromidx = tid * i;
-		int toidx = fromidx + i;
-		if (toidx > sys->natoms)
-			toidx = sys->natoms;
-		for (i = 1; i < sys->nthreads; ++i) {
-			int offs = i * sys->natoms;
-			for (int j = fromidx; j < toidx; ++j) {
-				sys->cx[j] += sys->cx[offs + j];
-				sys->cy[j] += sys->cy[offs + j];
-				sys->cz[j] += sys->cz[offs + j];
-			}
-		}
+    int chunk_size = (sys->natoms + sys->nthreads - 1) / sys->nthreads;
+    int start = tid * chunk_size;
+    int end = (start + chunk_size > sys->natoms) ? sys->natoms : start + chunk_size;
+    for (int t = 1; t < sys->nthreads; ++t) {
+      int offset = t * sys->natoms;
+      for (int i = start; i < end; ++i) {
+          sys->cx[i] += sys->cx[offset + i];
+          sys->cy[i] += sys->cy[offset + i];
+          sys->cz[i] += sys->cz[offset + i];
+      }
+    }
+
 	}
 
 	MPI_Reduce(sys->cx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, sys->mpicomm);
