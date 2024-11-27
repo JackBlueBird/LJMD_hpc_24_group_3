@@ -27,6 +27,9 @@ struct _mdsys {
     double *cx, *cy, *cz;
     int natoms, nfi, nsteps;
     int nthreads;
+    // int threadi;
+    // int rank;
+    // int size;
 };
 typedef struct _mdsys mdsys_t;
 typedef struct _mdsys mdsys_t;
