@@ -68,5 +68,5 @@ LJMD in parallel.
 
 #### Speedup comparison
 
-![](.report/fig/speedup-comparison.png)
+![](./report/fig/speedup-comparison.png)
 
