@@ -70,3 +70,8 @@ LJMD in parallel.
 
 ![](./report/fig/speedup-comparison.png)
 
+#### Summary 
+
+The results show a better speedup for a large number of atoms. A larger number of atoms provides more computational work that benefits from parallel processing, which reduces the relative impact of communication overhead and serial execution parts, thus achieving a better speedup.
+
+
