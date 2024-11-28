@@ -1,18 +1,9 @@
-This package contains simplified MD code with multi-threading
-parallelization for simulating atoms with a Lennard-Jones potential.
+## A Simple LJ Many-Body Simulator - Optimization and Parallelization
 
-The bundled makefiles are set up to compile the executable once
-with OpenMP disabled and once with OpenMP enabled with each build
-placing the various object files in separate directories.
+### The LJ Model for Liquid Argon
 
-The examples directory contains 3 sets of example input decks
-and the reference directory the corresponding outputs.
-
-Type: make
-to compile everything and: make clean
-to remove all compiled objects
-
-
+Cubic box of particles with a Lennard-Jones type pair-wise additive interaction
+potential.
 
 ### Build LJMD
 
@@ -67,14 +58,15 @@ LJMD in parallel.
 #### MPI
 
 ![](./report/fig/runtime-mpi.png)
-![](./report/fig/speedup-mpi.png)
 
 #### OMP
 
 ![](./report/fig/runtime-omp.png)
-![](./report/fig/speedup-omp.png)
+
+#### Hybrid
+![](./report/fig/runtime-hyb.png)
 
 #### Speedup comparison
 
-![](./report/fig/speedup-comparison.png)
+![](.report/fig/speedup-comparison.png)
 
