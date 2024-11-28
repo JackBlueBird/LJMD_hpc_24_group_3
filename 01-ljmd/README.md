@@ -62,4 +62,19 @@ LJMD in parallel.
 > -D ENABLE_TESTING=value   # ON/OFF, default is OFF
 > ```
 
+### Results
+
+#### MPI
+
+![](./report/fig/runtime-mpi.png)
+![](./report/fig/speedup-mpi.png)
+
+#### OMP
+
+![](./report/fig/runtime-omp.png)
+![](./report/fig/speedup-omp.png)
+
+#### Speedup comparison
+
+![](./report/fig/speedup-comparison.png)
 
