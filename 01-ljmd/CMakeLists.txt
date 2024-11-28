@@ -26,16 +26,12 @@ if(OpenMP_FOUND)
 endif()
 
 option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
-# option(BUILD_OMP "Search OMP libraries" ON)
 if(BUILD_OMP)
   find_package(OpenMP)
-# endif()
-# if(OpenMP_FOUND)
   message(STATUS "OpenMP found, enabling multi threading")
   add_compile_options(${OpenMP_C_FLAGS})
   add_link_options(${OpenMP_C_FLAGS})
 endif()
-
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -52,8 +48,6 @@ option(BUILD_MPI "Build with MPI support" ${BUILD_MPI_DEFAULT})
 if(BUILD_MPI)
   find_package(MPI)
   message(STATUS "MPI found, enabling parallelism")
-# endif()
-# if(MPI_C_FOUND)
   include_directories(${MPI_INCLUDE_PATH})
   message(STATUS "Run: ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} EXECUTABLE ${MPIEXEC_POSTFLAGS} < input_file")
 endif()
@@ -68,8 +62,7 @@ set(HEADER_FILES src/mdsys.h src/read_input.h src/utilities.h src/ekin.h src/for
 # Add separated files into a library
 add_library(mdlib SHARED src/mdsys.c src/read_input.c src/utilities.c src/ekin.c src/force.c src/verlet.c src/output.c ${HEADER_FILES})
 #target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer )
-target_compile_options(mdlib PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
-target_link_libraries(mdlib m)
+target_compile_options(mdlib PUBLIC -Wall -march=native -O3 -ffast-math -fomit-frame-pointer)
 
 ## ---- MPI ----
 if(BUILD_MPI)
@@ -85,8 +78,8 @@ target_include_directories(mdlib PUBLIC ${CMAKE_SOURCE_DIR}/src)
 #-------------------------------------------------------------------------------
 # add the executable
 add_executable(ljmd.x src/main.c)
-target_compile_options(ljmd.x PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
-target_link_libraries(ljmd.x m mdlib)
+target_compile_options(ljmd.x PUBLIC -Wall -march=native -O3 -ffast-math -fomit-frame-pointer)
+target_link_libraries(ljmd.x mdlib)
 
 ## ---- MPI ----
 if(BUILD_MPI)
@@ -111,7 +104,7 @@ if(ENABLE_TESTING)
 
   #----------------------------------------
   add_executable(test_verlet gtest/tests/test_verlet.cpp)
-  target_compile_options(test_verlet PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
+  target_compile_options(test_verlet PUBLIC -Wall -march=native -O3 -ffast-math -fomit-frame-pointer)
   target_link_libraries(test_verlet PRIVATE GTest::GTestMain GTest::GTest mdlib)
   target_include_directories(test_verlet PRIVATE ${CMAKE_SOURCE_DIR}/src)
   add_test(NAME Verlet COMMAND test_verlet)
