@@ -61,10 +61,33 @@ LJMD in parallel.
 > -D ENABLE_TESTING=value   # ON/OFF, default is OFF
 > ```
 
+
+
+### Initial Serial Code
+
+In the following profiling we can see which functions we need to do more work on.
+
+
+```shell
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+   %   cumulative   self              self     total
+  time   seconds   seconds    calls  us/call  us/call  name
+  73.22      3.24     3.24    10001   324.33   406.91  force
+  16.61      3.98     0.74 346714668     0.00     0.00  pbc
+   7.01      4.29     0.31                             _init
+   2.03      4.38     0.09    30006     3.00     3.00  azzero
+   0.90      4.42     0.04    10000     4.00   410.91  velverlet
+   0.34      4.43     0.02    10001     1.50     1.50  ekin
+   0.00      4.43     0.00      101     0.00     0.00  output
+   0.00      4.43     0.00       12     0.00     0.00  get_a_line
+```
+Several of the features that are taking the most time can be worked on. Significant improvements have been made to most features.
 ### Results
 
 The results for the different optimizations performed are shown. 
-In each of the parallelization implementations, it is observed that the time scales as the available resources increase. Results obtained from Leonardo and Ulysses are shown.
+In each of the parallelization implementations, it is observed that the time scales as the available resources increase. Results obtained from Leonardo.
 
 #### MPI
 Resuls from Leonardo.
@@ -89,6 +112,6 @@ Speedup comparison with the results from Leonardo.
 
 #### Summary 
 
-The results show a better speedup for a large number of atoms. A larger number of atoms provides more computational work that benefits from parallel processing, which reduces the relative impact of communication overhead and serial execution parts, thus achieving a better speedup.
+A significant improvement is observed in all results but better speedups are shown for a higher number of atoms. A higher number of atoms provides more computational work that benefits from parallel processing, reducing the relative impact of communication overhead and serial execution parts, thus achieving better speedups.
 
 
