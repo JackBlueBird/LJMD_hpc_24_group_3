@@ -83,18 +83,18 @@ target_include_directories(mdlib PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # LJMD EXEC
 #-------------------------------------------------------------------------------
 # add the executable
-add_executable(ljmd-serial.x src/main.c)
-target_compile_options(ljmd-serial.x PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
-target_link_libraries(ljmd-serial.x m mdlib)
+add_executable(ljmd.x src/main.c)
+target_compile_options(ljmd.x PUBLIC -Wall -g -O3 -ffast-math -fomit-frame-pointer)
+target_link_libraries(ljmd.x m mdlib)
 
 ## ---- MPI ----
 if(BUILD_MPI)
-  target_compile_options(ljmd-serial.x PUBLIC -D_MPI)
-  target_link_libraries(ljmd-serial.x ${MPI_LIBRARIES})
+  target_compile_options(ljmd.x PUBLIC -D_MPI)
+  target_link_libraries(ljmd.x ${MPI_LIBRARIES})
 endif()
 
 # Use target_include_directories to include ${PROJECT_BINARY_DIR}
-target_include_directories(ljmd-serial.x PUBLIC "${PROJECT_BINARY_DIR}" ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(ljmd.x PUBLIC "${PROJECT_BINARY_DIR}" ${CMAKE_SOURCE_DIR}/src)
 
 
 #-------------------------------------------------------------------------------
