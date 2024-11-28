@@ -1,5 +1,13 @@
 ## A Simple LJ Many-Body Simulator - Optimization and Parallelization
 
+This report shows the results of the optimization we performed for the Lennard-Jones Potential for Many-Body simulator. Throughout the work process, the three members of the group contributed hard. In general, the work was divided as follows:
+
+ - Single-core optimization (assigned to Ludwig Asturi)
+ - MPI parallelization (assigned to Giacomo Zuccarino)
+ - OMP parallelization  (assigned to Gustavo Paredes)
+
+ Mainly the optimizations focused on the force and Verlet functions, more than anything the force function was the one we worked on the most.
+
 ### The LJ Model for Liquid Argon
 
 Cubic box of particles with a Lennard-Jones type pair-wise additive interaction
@@ -55,18 +63,27 @@ LJMD in parallel.
 
 ### Results
 
+The results for the different optimizations performed are shown. 
+In each of the parallelization implementations, it is observed that the time scales as the available resources increase. Results obtained from Leonardo and Ulysses are shown.
+
 #### MPI
+Resuls from Leonardo.
 
 ![](./report/fig/runtime-mpi.png)
 
 #### OMP
+OMP results from Leonardo.
 
 ![](./report/fig/runtime-omp.png)
 
 #### Hybrid
+
+Hybrid results from Leonardo. 
+
 ![](./report/fig/runtime-hyb.png)
 
 #### Speedup comparison
+Speedup comparison with the results from Leonardo.
 
 ![](./report/fig/speedup-comparison.png)
 
