@@ -2,7 +2,7 @@
 
 This report shows the results of the optimization we performed for the Lennard-Jones Potential for Many-Body simulator. Throughout the work process, the three members of the group contributed hard. In general, the work was divided as follows:
 
- - Single-core optimization (assigned to Ludwig Asturi)
+ - Single-core optimization (assigned to Ludwig Asturias)
  - MPI parallelization (assigned to Giacomo Zuccarino)
  - OMP parallelization  (assigned to Gustavo Paredes)
 
