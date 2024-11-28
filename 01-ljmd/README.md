@@ -10,8 +10,15 @@ This report shows the results of the optimization we performed for the Lennard-J
 
 ### The LJ Model for Liquid Argon
 
-Cubic box of particles with a Lennard-Jones type pair-wise additive interaction
-potential.
+The Lennard-Jones potential is a simple model that still manages to describe
+the essential features of interactions between simple atoms: Two
+interacting particles repel each other at very close distance, attract each
+other at moderate distance, and stop interacting if the distance is 
+larger than
+a defined cutoff (i.e. LJ potential is truncated).
+
+![](./report/fig/potential-lj.png)
+
 
 ### Build LJMD
 
