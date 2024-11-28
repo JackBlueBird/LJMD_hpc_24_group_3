@@ -9,6 +9,14 @@
 #include "verlet.h"
 #include "output.h"
 
+#if defined(_MPI)
+#include <mpi.h>
+#endif
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 const double abs_err=1e-6;
 
 class ForceTest: public ::testing::Test {
@@ -19,6 +27,13 @@ class ForceTest: public ::testing::Test {
 
     void SetUp()
     {
+#if defined(_MPI)
+      char** argv;
+      int argc = 0;
+      int mpiError = MPI_Init(&argc, &argv);
+      ASSERT_FALSE(mpiError);
+#endif
+
       sys = new mdsys_t;
       sys->natoms = 4;
       sys->mass = 39.948;
@@ -28,14 +43,41 @@ class ForceTest: public ::testing::Test {
       sys->box = 8.0;
       sys->dt = 5.0;
 
-      sys->rx = new double[4];
-      sys->fx = new double[4];
+      // MPI - parameters
+# if defined(_MPI)
+      int rank,size;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+      sys->mpirank = rank;
+      sys->nsize = size;
+# else
+      sys->mpirank = 0;
+      sys->nsize = 1;
+# endif
 
-      sys->ry = new double[4];
-      sys->fy = new double[4];
+#if defined(_OPENMP)
+#pragma omp parallel
+      {
+      sys->nthreads = omp_get_num_threads();
+      }
+#else
+      sys->nthreads = 1;
+#endif
 
-      sys->rz = new double[4];
-      sys->fz = new double[4];
+// #if defined(_MPI) || defined(_OPENMP)
+      sys->cx = new double[sys->nthreads*4];
+      sys->cy = new double[sys->nthreads*4];
+      sys->cz = new double[sys->nthreads*4];
+// #endif
+
+      sys->rx = new double[sys->nthreads*4];
+      sys->fx = new double[sys->nthreads*4];
+
+      sys->ry = new double[sys->nthreads*4];
+      sys->fy = new double[sys->nthreads*4];
+
+      sys->rz = new double[sys->nthreads*4];
+      sys->fz = new double[sys->nthreads*4];
 
       // Zero energy and forces
       sys->epot = 0.0;
@@ -81,53 +123,49 @@ class ForceTest: public ::testing::Test {
       delete[] sys->rz;
       delete[] sys->fz;
 
+#if defined(_MPI) || defined(_OPENMP)
+      delete[] sys->cx;
+      delete[] sys->cy;
+      delete[] sys->cz;
+#endif
       delete sys;
+
+#if defined(_MPI)
+      int mpiError = MPI_Finalize();
+      ASSERT_FALSE(mpiError);
+#endif
     }
 };
 
-// Unit test - force - inside cutoff - directly (p0,p1)
-TEST_F(ForceTest, inside_directly)
+TEST_F(ForceTest, interaction)
 {
   ASSERT_NE(sys,nullptr);
+
   ASSERT_NEAR(sys->fx[0],0.0,abs_err);
   ASSERT_NEAR(sys->fy[0],0.0,abs_err);
   ASSERT_NEAR(sys->fz[0],0.0,abs_err);
   ASSERT_NEAR(sys->fx[1],0.0,abs_err);
   ASSERT_NEAR(sys->fy[1],0.0,abs_err);
   ASSERT_NEAR(sys->fz[1],0.0,abs_err);
-  force(sys);
-  ASSERT_NEAR(sys->fx[1],58.73411942344227,abs_err);
-  ASSERT_NEAR(sys->fy[1],58.73411942344227,abs_err);
-  ASSERT_NEAR(sys->fz[1],58.73411942344227,abs_err);
-}
-
-// Unit test - force - inside cutoff - via PBC (p0,p2)
-TEST_F(ForceTest, inside_viaPBC)
-{
-  ASSERT_NE(sys,nullptr);
-  ASSERT_NEAR(sys->fx[0],0.0,abs_err);
-  ASSERT_NEAR(sys->fy[0],0.0,abs_err);
-  ASSERT_NEAR(sys->fz[0],0.0,abs_err);
   ASSERT_NEAR(sys->fx[2],0.0,abs_err);
   ASSERT_NEAR(sys->fy[2],0.0,abs_err);
   ASSERT_NEAR(sys->fz[2],0.0,abs_err);
-  force(sys);
-  ASSERT_NEAR(sys->fx[2],0.0,abs_err);
-  ASSERT_NEAR(sys->fy[2],0.0,abs_err);
-  ASSERT_NEAR(sys->fz[2],-27726925.7743613,abs_err); // negative by Newton 3
-}
-
-// Unit test - force - outside cutoff (p0,p3)
-TEST_F(ForceTest, outside_directly)
-{
-  ASSERT_NE(sys,nullptr);
-  ASSERT_NEAR(sys->fx[0],0.0,abs_err);
-  ASSERT_NEAR(sys->fy[0],0.0,abs_err);
-  ASSERT_NEAR(sys->fz[0],0.0,abs_err);
   ASSERT_NEAR(sys->fx[3],0.0,abs_err);
   ASSERT_NEAR(sys->fy[3],0.0,abs_err);
   ASSERT_NEAR(sys->fz[3],0.0,abs_err);
+
   force(sys);
+
+  // Unit test - force - inside cutoff - directly (p0,p1)
+  ASSERT_NEAR(sys->fx[1],58.73411942344227,abs_err);
+  ASSERT_NEAR(sys->fy[1],58.73411942344227,abs_err);
+  ASSERT_NEAR(sys->fz[1],58.73411942344227,abs_err);
+  // Unit test - force - inside cutoff - via PBC (p0,p2)
+  ASSERT_NEAR(sys->fx[2],0.0,abs_err);
+  ASSERT_NEAR(sys->fy[2],0.0,abs_err);
+  ASSERT_NEAR(sys->fz[2],-27726925.7743613,abs_err); // negative by Newton 3
+
+  // Unit test - force - outside cutoff (p0,p3)
   ASSERT_NEAR(sys->fx[3],0.0,abs_err);
   ASSERT_NEAR(sys->fy[3],0.0,abs_err);
   ASSERT_NEAR(sys->fz[3],0.0,abs_err);

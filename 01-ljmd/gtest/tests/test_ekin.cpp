@@ -9,6 +9,10 @@
 #include "verlet.h"
 #include "output.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 const double abs_err=1e-6;
 
 const double kboltz=0.0019872067;     /* boltzman constant in kcal/mol/K */
@@ -27,9 +31,28 @@ protected:
         sys->mass = 1.0;
         sys->ekin = 0.0;
         // sys->temp = 0.0;
-        sys->vx = new double[3];
-        sys->vy = new double[3];
-        sys->vz = new double[3];
+
+        // MPI - parameters
+// # if defined(_MPI)
+        // sys->mpirank = rank;
+        // sys->nsize = size;
+// # else
+        sys->mpirank = 0;
+        sys->nsize = 1;
+// # endif
+
+#if defined(_OPENMP)
+#pragma omp parallel
+        {
+        sys->nthreads = omp_get_num_threads();
+        }
+#else
+        sys->nthreads = 1;
+#endif
+
+        sys->vx = new double[sys->nthreads*3];
+        sys->vy = new double[sys->nthreads*3];
+        sys->vz = new double[sys->nthreads*3];
         sys->vx[0] = 0.300;
         sys->vx[1] = 0.150;
         sys->vx[2] = 0.070;
