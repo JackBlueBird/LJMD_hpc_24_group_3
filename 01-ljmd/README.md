@@ -110,6 +110,10 @@ Speedup comparison with the results from Leonardo.
 
 ![](./report/fig/speedup-comparison.png)
 
+The speedup in Ulysses in the next picture shows the same behavior as in Leonardo.
+
+![](./report/fig/speedup-comparison-uly.png)
+
 #### Summary 
 
 A significant improvement is observed in all results but better speedups are shown for a higher number of atoms. A higher number of atoms provides more computational work that benefits from parallel processing, reducing the relative impact of communication overhead and serial execution parts, thus achieving better speedups.
